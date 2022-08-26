@@ -27,6 +27,12 @@ const (
         "idTokenGroup2"
       ]
     }`
+	// https://github.com/oauth2-proxy/oauth2-proxy/issues/1765
+	cognitoFederatedGroupsIDTokenPayload = `{
+      "user": "cognitoIDTokenUser",
+      "email": "cognitoIDTokenEmail",
+      "custom:groups": "[cognitoIDTokenGroup1, cognitoIDTokenGroup2]"
+    }`
 	basicProfileURLPayload = `{
         "user": "profileUser",
         "email": "profileEmail",
@@ -415,6 +421,19 @@ var _ = Describe("Claim Extractor Suite", func() {
 			expectExists:  false,
 			expectedValue: stringPointer(""),
 			expectedError: errors.New("could not get claim \"user\": failed to fetch claims from profile URL: error making request to profile URL: unexpected status \"403\": Unauthorized"),
+		}),
+		Entry("retrieves a stringified slice claim from ID Token when present into a string slice", getClaimIntoTableInput{
+			testClaimExtractorOpts: testClaimExtractorOpts{
+				idTokenPayload:        cognitoFederatedGroupsIDTokenPayload,
+				setProfileURL:         true,
+				profileRequestHeaders: newAuthorizedHeader(),
+				profileRequestHandler: shouldNotBeRequestedProfileHandler,
+			},
+			claim:         "custom:groups",
+			into:          stringSlicePointer([]string{}),
+			expectExists:  true,
+			expectedValue: stringSlicePointer([]string{"cognitoIDTokenGroup1", "cognitoIDTokenGroup2"}),
+			expectedError: nil,
 		}),
 	)
 

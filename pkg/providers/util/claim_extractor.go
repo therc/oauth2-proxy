@@ -178,6 +178,18 @@ func toStringSlice(value interface{}) ([]string, error) {
 	switch v := value.(type) {
 	case []interface{}:
 		sliceValues = v
+	// Detect array passed as a single string, e.g. when federating
+	// users and groups in Cognito. See
+	// https://github.com/oauth2-proxy/oauth2-proxy/issues/1765
+	case string:
+		s := value.(string)
+		if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
+			l := strings.Split(s[1:len(s)-1], ", ")
+			return l, nil
+
+		} else {
+			sliceValues = []interface{}{v}
+		}
 	case interface{}:
 		sliceValues = []interface{}{v}
 	default:

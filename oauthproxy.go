@@ -818,7 +818,7 @@ func (p *OAuthProxy) OAuthCallback(rw http.ResponseWriter, req *http.Request) {
 		}
 		http.Redirect(rw, req, appRedirect, http.StatusFound)
 	} else {
-		logger.PrintAuthf(session.Email, req, logger.AuthFailure, "Invalid authentication via OAuth2: unauthorized")
+		logger.PrintAuthf(session.Email, req, logger.AuthFailure, "Invalid authentication via OAuth2: unauthorized - authorized=%t, %s", authorized, session)
 		p.ErrorPage(rw, req, http.StatusForbidden, "Invalid session: unauthorized")
 	}
 }
